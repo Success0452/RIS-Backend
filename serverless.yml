@@ -1,0 +1,124 @@
+service: retail
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  environment:
+    DB_HOST: ${ssm:/my-service/DB_HOST}
+    DB_USER: ${ssm:/my-service/DB_USER}
+    DB_PASSWORD: ${ssm:/my-service/DB_PASSWORD}
+    DB_NAME: ${ssm:/my-service/DB_NAME}
+    JWT_SECRET: ${ssm:/my-service/JWT_SECRET}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "ssm:GetParameter"
+        - "ssm:PutParameter"
+      Resource:
+        - "arn:aws:ssm:us-east-1:524789112518:parameter/my-service/DB_HOST"
+        - "arn:aws:ssm:us-east-1:524789112518:parameter/my-service/DB_USER"
+        - "arn:aws:ssm:us-east-1:524789112518:parameter/my-service/DB_PASSWORD"
+        - "arn:aws:ssm:us-east-1:524789112518:parameter/my-service/DB_NAME"
+  httpApi:
+    cors:
+      allowedOrigins:
+        - "https://ris-31hs.onrender.com"
+        - "http://localhost:3000"
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - OPTIONS
+        - GET
+        - POST
+        - PUT
+        - DELETE
+      allowCredentials: true
+      maxAge: 86400
+
+functions:
+  register:
+    handler: src/routes/user.registerAccount
+    events:
+      - http:
+          path: /register
+          method: post
+      - http:
+          path: /register
+          method: options
+  login:
+    handler: src/routes/user.loginAccount
+    events:
+      - http:
+          path: /login
+          method: post
+  logout:
+    handler: src/routes/user.logoutAccount
+    events:
+      - http:
+          path: /logout
+          method: post
+      - http:
+          path: /logout
+          method: options
+  addProduct:
+    handler: src/routes/product.addProduct
+    events:
+      - http:
+          path: /products
+          method: post
+      - http:
+          path: /products
+          method: options
+  getProducts:
+    handler: src/routes/product.getListOfProducts
+    events:
+      - http:
+          path: /products
+          method: get
+      - http:
+          path: /products
+          method: options
+  updateProduct:
+    handler: src/routes/product.updateExistingProduct
+    events:
+      - http:
+          path: /products
+          method: put
+      - http:
+          path: /products
+          method: options
+  deleteProduct:
+    handler: src/routes/product.deleteExistingProduct
+    events:
+      - http:
+          path: /products
+          method: delete
+      - http:
+          path: /products
+          method: options
+  addCategory:
+    handler: src/routes/category.addCategory
+    events:
+      - http:
+          path: /categories
+          method: post
+      - http:
+          path: /categories
+          method: options
+  getCategories:
+    handler: src/routes/category.getListOfAllCategories
+    events:
+      - http:
+          path: /categories
+          method: get
+      - http:
+          path: /categories
+          method: options
+
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
