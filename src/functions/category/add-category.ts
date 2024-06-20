@@ -15,6 +15,13 @@ export const addNewCategory = async (_event: APIGatewayProxyEvent): Promise<APIG
             )
         }
 
+        if(!name){
+            return createResponse(
+                StatusCodes.BAD_REQUEST,
+                {statusCode: StatusCodes.BAD_REQUEST, message: 'please name field is required'},
+            )
+        }
+
         const user = tokenRes.user;
 
         const checkExistingName = await Categories.findOne({where: {name: name}});

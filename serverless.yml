@@ -45,9 +45,6 @@ functions:
       - http:
           path: /register
           method: post
-      - http:
-          path: /register
-          method: options
   login:
     handler: src/routes/user.loginAccount
     events:
@@ -60,63 +57,42 @@ functions:
       - http:
           path: /logout
           method: post
-      - http:
-          path: /logout
-          method: options
   addProduct:
     handler: src/routes/product.addProduct
     events:
       - http:
           path: /products
           method: post
-      - http:
-          path: /products
-          method: options
   getProducts:
     handler: src/routes/product.getListOfProducts
     events:
       - http:
           path: /products
           method: get
-      - http:
-          path: /products
-          method: options
   updateProduct:
     handler: src/routes/product.updateExistingProduct
     events:
       - http:
           path: /products
           method: put
-      - http:
-          path: /products
-          method: options
   deleteProduct:
     handler: src/routes/product.deleteExistingProduct
     events:
       - http:
           path: /products
           method: delete
-      - http:
-          path: /products
-          method: options
   addCategory:
     handler: src/routes/category.addCategory
     events:
       - http:
           path: /categories
           method: post
-      - http:
-          path: /categories
-          method: options
   getCategories:
     handler: src/routes/category.getListOfAllCategories
     events:
       - http:
           path: /categories
           method: get
-      - http:
-          path: /categories
-          method: options
 
 
 plugins:

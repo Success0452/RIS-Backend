@@ -1,95 +1,191 @@
-# Serverless - AWS Node.js Typescript
+# Serverless Retail Store Application
 
-This project has been generated using the `aws-nodejs-typescript` template from the [Serverless framework](https://www.serverless.com/).
+![Serverless](https://img.shields.io/badge/serverless-aws-orange)
+![Nodejs](https://img.shields.io/badge/nodejs-18.x-green)
+![Typescript](https://img.shields.io/badge/typescript-4.x-blue)
+![MySQL](https://img.shields.io/badge/mysql-8.0-blue)
+![Yarn](https://img.shields.io/badge/yarn-3.6.4-blue)
 
-For detailed instructions, please refer to the [documentation](https://www.serverless.com/framework/docs/providers/aws/).
+This is a serverless simplified multi-platform retail store application built with AWS Lambda, Node.js, and Typescript. The application uses MySQL for the database and is managed using the Serverless Framework. The package manager used is Yarn.
 
-## Installation/deployment instructions
+## Table of Contents
 
-Depending on your preferred package manager, follow the instructions below to deploy your project.
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Running the Application](#running-the-application)
+- [Testing the Application](#testing-the-application)
+- [Endpoints](#endpoints)
+    - [User Routes](#user-routes)
+    - [Product Routes](#product-routes)
+    - [Category Routes](#category-routes)
+- [Scripts](#scripts)
 
-> **Requirements**: NodeJS `lts/fermium (v.14.15.0)`. If you're using [nvm](https://github.com/nvm-sh/nvm), run `nvm use` to ensure you're using the same Node version in local and in your lambda's runtime.
+## Prerequisites
 
-### Using NPM
+- Node.js (18.x)
+- Yarn (3.6.4)
+- Serverless Framework
+- AWS CLI
+- MySQL
 
-- Run `npm i` to install the project dependencies
-- Run `npx sls deploy` to deploy this stack to AWS
+## Setup
 
-### Using Yarn
+1. **Clone the repository**
 
-- Run `yarn` to install the project dependencies
-- Run `yarn sls deploy` to deploy this stack to AWS
+   ```bash
+   git clone https://github.com/Success0452/RIS-Backend.git
+   cd RIS-Backend
 
-## Test your service
+2. **Install dependencies**
+   ```bash
+   yarn install
 
-This template contains a single lambda function triggered by an HTTP request made on the provisioned API Gateway REST API `/hello` route with `POST` method. The request body must be provided as `application/json`. The body structure is tested by API Gateway against `src/functions/hello/schema.ts` JSON-Schema definition: it must contain the `name` property.
+3. **Setup environment variables**
+   Store your environment variables in AWS Systems Manager Parameter Store (SSM). Example variables include:
+   `DB_HOST`
+   `DB_USER`
+   `DB_PASSWORD`
+   `DB_NAME`
+  Use the AWS CLI to set these variables:
+   ```
+   aws ssm put-parameter --name "/env/DB_HOST" --value "your-db-host" --type "String"
+   aws ssm put-parameter --name "/env/DB_USER" --value "your-db-user" --type "String"
+   aws ssm put-parameter --name "/env/DB_PASSWORD" --value "your-db-password" --type "String"
+   aws ssm put-parameter --name "/env/DB_NAME" --value "your-db-name" --type "String"
+   aws ssm put-parameter --name "/env/JWT_SECRET" --value "your-db-name" --type "String"
+   ```
+## Running the Application
 
-- requesting any other path than `/hello` with any other method than `POST` will result in API Gateway returning a `403` HTTP error code
-- sending a `POST` request to `/hello` with a payload **not** containing a string property named `name` will result in API Gateway returning a `400` HTTP error code
-- sending a `POST` request to `/hello` with a payload containing a string property named `name` will result in API Gateway returning a `200` HTTP status code with a message saluting the provided name and the detailed event processed by the lambda
+   ***To run the application locally:***
+   ```bash
+   yarn dev
+   ```
+   
+This command uses the Serverless Offline plugin to emulate AWS Lambda and API Gateway on your local machine.
 
-> :warning: As is, this template, once deployed, opens a **public** endpoint within your AWS account resources. Anybody with the URL can actively execute the API Gateway endpoint and the corresponding lambda. You should protect this endpoint with the authentication method of your choice.
+## Running the Application
 
-### Locally
+To run tests:
+  ```bash 
+  yarn test
+  ```
+This will run all tests located in the test folder.
 
-In order to test the hello function locally, run the following command:
-
-- `npx sls invoke local -f hello --path src/functions/hello/mock.json` if you're using NPM
-- `yarn sls invoke local -f hello --path src/functions/hello/mock.json` if you're using Yarn
-
-Check the [sls invoke local command documentation](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/) for more information.
-
-### Remotely
-
-Copy and replace your `url` - found in Serverless `deploy` command output - and `name` parameter in the following `curl` command in your terminal or in Postman to test your newly deployed application.
+## Endpoints
+### User Routes
+##### Register Route
+- `Method: POST`
+- `Endpoint: /register`
+- `Authorization: None`
+- `Request Body:`
 
 ```
-curl --location --request POST 'https://myApiEndpoint/dev/hello' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "name": "Frederic"
-}'
+{
+  "username": "exampleUser",
+  "password": "examplePassword"
+}
 ```
 
-## Template features
-
-### Project structure
-
-The project code base is mainly located within the `src` folder. This folder is divided in:
-
-- `functions` - containing code base and configuration for your lambda functions
-- `libs` - containing shared code base between your lambdas
+##### Login Route
+- `Method: POST`
+- `Endpoint: /login`
+- `Authorization: None`
+- `Request Body:`
 
 ```
-.
-├── src
-│   ├── functions               # Lambda configuration and source code folder
-│   │   ├── hello
-│   │   │   ├── handler.ts      # `Hello` lambda source code
-│   │   │   ├── index.ts        # `Hello` lambda Serverless configuration
-│   │   │   ├── mock.json       # `Hello` lambda input parameter, if any, for local invocation
-│   │   │   └── schema.ts       # `Hello` lambda input event JSON-Schema
-│   │   │
-│   │   └── index.ts            # Import/export of all lambda configurations
-│   │
-│   └── libs                    # Lambda shared code
-│       └── apiGateway.ts       # API Gateway specific helpers
-│       └── handlerResolver.ts  # Sharable library for resolving lambda handlers
-│       └── lambda.ts           # Lambda middleware
-│
-├── package.json
-├── serverless.ts               # Serverless service file
-├── tsconfig.json               # Typescript compiler configuration
-├── tsconfig.paths.json         # Typescript paths
-└── webpack.config.js           # Webpack configuration
+{
+  "username": "exampleUser",
+  "password": "examplePassword"
+}
 ```
 
-### 3rd party libraries
+##### Logout Route
+- `Method: POST`
+- `Endpoint: /logout`
+- `Authorization: Bearer token required`
+- `Request Body:None`
 
-- [json-schema-to-ts](https://github.com/ThomasAribart/json-schema-to-ts) - uses JSON-Schema definitions used by API Gateway for HTTP request validation to statically generate TypeScript types in your lambda's handler code base
-- [middy](https://github.com/middyjs/middy) - middleware engine for Node.Js lambda. This template uses [http-json-body-parser](https://github.com/middyjs/middy/tree/master/packages/http-json-body-parser) to convert API Gateway `event.body` property, originally passed as a stringified JSON, to its corresponding parsed object
-- [@serverless/typescript](https://github.com/serverless/typescript) - provides up-to-date TypeScript definitions for your `serverless.ts` service file
+### Product Routes
+##### Add Product Route
+- `Method: POST`
+- `Endpoint: /products`
+- `Authorization: Bearer token required`
+- `Request Body:`
 
-### Advanced usage
+```
+{
+  "name": "productName",
+  "description": "productDescription",
+  "quantity": 10,
+  "price": 99.99,
+  "categoryId": "categoryId"
+}
+```
+##### Get All Products Route
+- `Method: GET`
+- `Endpoint: /products`
+- `Authorization: Bearer token required`
+- `Request Body:None`
 
-Any tsconfig.json can be used, but if you do, set the environment variable `TS_NODE_CONFIG` for building the application, eg `TS_NODE_CONFIG=./tsconfig.app.json npx serverless webpack`
+##### Delete Product Route
+- `Method: DELETE`
+- `Endpoint: /products`
+- `Authorization: Bearer token required`
+- `Request Body:`
+
+```
+{
+  "productId": "productId"
+}
+```
+
+##### Update Product Route
+- `Method: DELETE`
+- `Endpoint: /products`
+- `Authorization: Bearer token required`
+- `Request Body:`
+
+```
+{
+  "productId": "productId",
+  "name": "updatedName",
+  "description": "updatedDescription",
+  "quantity": 5,
+  "price": 79.99,
+  "categoryId": "newCategoryId"
+}
+```
+### Category Routes
+##### Add Category Route
+- `Method: POST`
+- `Endpoint: /categories`
+- `Authorization: Bearer token required`
+- `Request Body:`
+
+```
+{
+  "name": "categoryName"
+}
+```
+##### Get All Category Route
+- `Method: GET`
+- `Endpoint: /categories`
+- `Authorization: Bearer token required`
+- `Request Body:None`
+
+## Scripts
+
+Runs the application locally.
+ ```bash
+   yarn dev
+```
+
+Deploys the application to AWS.
+ ```bash
+   yarn push
+```
+
+Runs the test suite.
+ ```bash
+   yarn test
+```
