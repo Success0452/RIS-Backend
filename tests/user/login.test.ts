@@ -40,8 +40,6 @@ describe('login function', () => {
     });
 
     it('should return 404 if user is not found', async () => {
-        // (User.findOne as jest.Mock).mockResolvedValue(null);
-
         const result = await login(event as APIGatewayProxyEvent);
 
         expect(result).toEqual(createResponse(
