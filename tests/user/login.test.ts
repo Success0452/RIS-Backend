@@ -1,9 +1,9 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { StatusCodes } from 'http-status-codes';
-import {createResponse} from "../../src/util/response";
-import login from "../../src/functions/user/login";
-import User from "../../src/models/user";
-import {generateToken, verifyPassword} from "../../src/util";
+import { createResponse } from '../../src/util/response';
+import login from '../../src/functions/user/login';
+import User from '../../src/models/user';
+import { generateToken, verifyPassword } from '../../src/util';
 import * as iconv from 'iconv-lite';
 iconv.encodingExists('foo');
 
@@ -25,6 +25,7 @@ describe('login function', () => {
     });
 
     afterEach(() => {
+        jest.clearAllTimers();
         jest.clearAllMocks();
     });
 
@@ -40,6 +41,8 @@ describe('login function', () => {
     });
 
     it('should return 404 if user is not found', async () => {
+        (User.findOne as jest.Mock).mockResolvedValue(null);
+
         const result = await login(event as APIGatewayProxyEvent);
 
         expect(result).toEqual(createResponse(
@@ -89,6 +92,17 @@ describe('login function', () => {
         expect(result).toEqual(createResponse(
             StatusCodes.INTERNAL_SERVER_ERROR,
             { statusCode: StatusCodes.INTERNAL_SERVER_ERROR, message: 'Internal Server Error' }
+        ));
+    });
+
+    it('should return 404 if no users are in the database', async () => {
+        (User.findOne as jest.Mock).mockResolvedValue(null);
+
+        const result = await login(event as APIGatewayProxyEvent);
+
+        expect(result).toEqual(createResponse(
+            StatusCodes.NOT_FOUND,
+            { message: 'username is not registered', statusCode: StatusCodes.NOT_FOUND }
         ));
     });
 });

@@ -34,12 +34,4 @@ User.init(
     }
 );
 
-User.sequelize.sync()
-    .then(() => {
-        console.log('User table created or already exists.');
-    })
-    .catch((error: any) => {
-        console.error('Error creating User table:', error);
-    });
-
 export default User;

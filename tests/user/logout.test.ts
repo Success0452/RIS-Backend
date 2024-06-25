@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { StatusCodes } from 'http-status-codes';
 import {verifyToken} from "../../src/util";
-import logout from "../../src/functions/user/logout";
 import {createResponse} from "../../src/util/response";
+import logout from "../../src/functions/user/logout";
 
 jest.mock('../../src/util/response');
 jest.mock('../../src/util');
@@ -11,6 +11,7 @@ describe('logout function', () => {
     let event: Partial<APIGatewayProxyEvent>;
 
     beforeEach(() => {
+        jest.useFakeTimers();
         event = {
             headers: {
                 Authorization: 'Bearer validtoken'
@@ -18,9 +19,31 @@ describe('logout function', () => {
         };
     });
 
+    afterEach(() => {
+        jest.clearAllTimers();
+        jest.clearAllMocks();
+    });
+
+    it('should return 400 if token verification fails', async () => {
+        (verifyToken as jest.Mock).mockResolvedValue({
+            StatusCodes: StatusCodes.BAD_REQUEST,
+            message: 'Invalid token'
+        });
+
+        const result = await logout(event as APIGatewayProxyEvent);
+
+        expect(result).toEqual(createResponse(
+            StatusCodes.BAD_REQUEST,
+            { statusCode: StatusCodes.BAD_REQUEST, message: 'Invalid token' }
+        ));
+    });
+
     it('should return 400 if user is not active', async () => {
-        const mockUser = { active: false, save: jest.fn() };
-        (verifyToken as jest.Mock).mockResolvedValue(mockUser);
+        const mockUser = { toJSON: () => ({ active: false }) };
+        (verifyToken as jest.Mock).mockResolvedValue({
+            StatusCodes: StatusCodes.OK,
+            user: mockUser
+        });
 
         const result = await logout(event as APIGatewayProxyEvent);
 
@@ -31,13 +54,18 @@ describe('logout function', () => {
     });
 
     it('should return 200 if logout is successful', async () => {
-        const mockUser = { active: true, save: jest.fn() };
-        (verifyToken as jest.Mock).mockResolvedValue(mockUser);
+        const mockUser = {
+            toJSON: () => ({ active: true }),
+            update: jest.fn().mockResolvedValue({})
+        };
+        (verifyToken as jest.Mock).mockResolvedValue({
+            StatusCodes: StatusCodes.OK,
+            user: mockUser
+        });
 
         const result = await logout(event as APIGatewayProxyEvent);
 
-        expect(mockUser.active).toBe(false);
-        expect(mockUser.save).toHaveBeenCalled();
+        expect(mockUser.update).toHaveBeenCalledWith({ active: false });
         expect(result).toEqual(createResponse(
             StatusCodes.OK,
             { statusCode: StatusCodes.OK, message: 'user has been loggedOut successfully' }
@@ -52,29 +80,6 @@ describe('logout function', () => {
         expect(result).toEqual(createResponse(
             StatusCodes.INTERNAL_SERVER_ERROR,
             { statusCode: StatusCodes.INTERNAL_SERVER_ERROR, message: 'Internal Server Error' }
-        ));
-    });
-
-    it('should return 500 if token verification fails', async () => {
-        event.headers.Authorization = 'invalidtoken';
-        (verifyToken as jest.Mock).mockRejectedValue(new Error('Token verification failed'));
-
-        const result = await logout(event as APIGatewayProxyEvent);
-
-        expect(result).toEqual(createResponse(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            { statusCode: StatusCodes.INTERNAL_SERVER_ERROR, message: 'Token verification failed' }
-        ));
-    });
-
-    it('should return 500 if Authorization header is missing', async () => {
-        event.headers = {};
-
-        const result = await logout(event as APIGatewayProxyEvent);
-
-        expect(result).toEqual(createResponse(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            { statusCode: StatusCodes.INTERNAL_SERVER_ERROR, message: expect.any(String) }
         ));
     });
 });

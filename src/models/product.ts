@@ -44,12 +44,4 @@ Product.init(
     }
 );
 
-Product.sequelize.sync()
-    .then(() => {
-        console.log('Product table created or already exists.');
-    })
-    .catch((error: any) => {
-        console.error('Error creating Product table:', error);
-    });
-
 export default Product;

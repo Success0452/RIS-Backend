@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "sls offline -s dev",
     "push": "sls deploy",
-    "test": "jest"
+    "test": "jest --detectOpenHandles"
   },
   "engines": {
     "node": ">=14.15.0"

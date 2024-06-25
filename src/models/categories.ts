@@ -29,12 +29,4 @@ Categories.init(
     }
 );
 
-Categories.sequelize.sync()
-    .then(() => {
-        console.log('Categories table created or already exists.');
-    })
-    .catch((error: any) => {
-        console.error('Error creating Categories table:', error);
-    });
-
 export default Categories;

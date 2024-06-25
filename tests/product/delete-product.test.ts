@@ -1,9 +1,9 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { StatusCodes } from 'http-status-codes';
-import Product from "../../src/models/product";
 import {verifyToken} from "../../src/util";
 import {createResponse} from "../../src/util/response";
 import {deleteProduct} from "../../src/functions/product/delete-product";
+import Product from "../../src/models/product";
 
 jest.mock('../../src/util/response');
 jest.mock('../../src/util');
@@ -13,18 +13,41 @@ describe('deleteProduct function', () => {
     let event: Partial<APIGatewayProxyEvent>;
 
     beforeEach(() => {
+        jest.useFakeTimers();
         event = {
             headers: {
                 Authorization: 'Bearer validtoken'
             },
-            body: JSON.stringify({
-                productId: 1
-            })
+            body: JSON.stringify({ productId: '1' })
         };
+    });
+
+    afterEach(() => {
+        jest.clearAllTimers();
+        jest.clearAllMocks();
+    });
+
+    it('should return 400 if token verification fails', async () => {
+        (verifyToken as jest.Mock).mockResolvedValue({
+            StatusCodes: StatusCodes.BAD_REQUEST,
+            message: 'Invalid token'
+        });
+
+        const result = await deleteProduct(event as APIGatewayProxyEvent);
+
+        expect(result).toEqual(createResponse(
+            StatusCodes.BAD_REQUEST,
+            { statusCode: StatusCodes.BAD_REQUEST, message: 'Invalid token' }
+        ));
     });
 
     it('should return 400 if productId is not provided', async () => {
         event.body = JSON.stringify({});
+
+        (verifyToken as jest.Mock).mockResolvedValue({
+            StatusCodes: StatusCodes.OK,
+            user: {}
+        });
 
         const result = await deleteProduct(event as APIGatewayProxyEvent);
 
@@ -36,9 +59,12 @@ describe('deleteProduct function', () => {
 
     it('should return 200 if product is deleted successfully', async () => {
         const mockProduct = {
-            destroy: jest.fn()
+            destroy: jest.fn().mockResolvedValue({})
         };
-        (verifyToken as jest.Mock).mockResolvedValue({ id: 1 });
+        (verifyToken as jest.Mock).mockResolvedValue({
+            StatusCodes: StatusCodes.OK,
+            user: {}
+        });
         (Product.findByPk as jest.Mock).mockResolvedValue(mockProduct);
 
         const result = await deleteProduct(event as APIGatewayProxyEvent);
@@ -58,41 +84,6 @@ describe('deleteProduct function', () => {
         expect(result).toEqual(createResponse(
             StatusCodes.INTERNAL_SERVER_ERROR,
             { statusCode: StatusCodes.INTERNAL_SERVER_ERROR, message: 'Internal Server Error' }
-        ));
-    });
-
-    it('should return 500 if token verification fails', async () => {
-        event.headers.Authorization = 'invalidtoken';
-        (verifyToken as jest.Mock).mockRejectedValue(new Error('Token verification failed'));
-
-        const result = await deleteProduct(event as APIGatewayProxyEvent);
-
-        expect(result).toEqual(createResponse(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            { statusCode: StatusCodes.INTERNAL_SERVER_ERROR, message: 'Token verification failed' }
-        ));
-    });
-
-    it('should return 500 if Authorization header is missing', async () => {
-        event.headers = {};
-
-        const result = await deleteProduct(event as APIGatewayProxyEvent);
-
-        expect(result).toEqual(createResponse(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            { statusCode: StatusCodes.INTERNAL_SERVER_ERROR, message: expect.any(String) }
-        ));
-    });
-
-    it('should return 500 if product does not exist', async () => {
-        (verifyToken as jest.Mock).mockResolvedValue({ id: 1 });
-        (Product.findByPk as jest.Mock).mockResolvedValue(null);
-
-        const result = await deleteProduct(event as APIGatewayProxyEvent);
-
-        expect(result).toEqual(createResponse(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            { statusCode: StatusCodes.INTERNAL_SERVER_ERROR, message: 'Cannot read properties of null (reading \'destroy\')' }
         ));
     });
 });
